@@ -17,7 +17,9 @@ export const generateComponentTypes = (
   areTypesInternal: boolean
 ): d.TypesModule => {
   const tagName = cmp.tagName.toLowerCase();
-  const tagNameAsPascal = dashToPascalCase(tagName);
+  const tagNameAsPascal = cmp.componentClassNameWithTypeParameters;
+  const classTypeParams = cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.join(',')}>`: '';
+  const classTypeParamsAny = cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.map(()=> 'any').join(',')}>`: '';
   const htmlElementName = `HTML${tagNameAsPascal}Element`;
 
   const propAttributes = generatePropTypes(cmp, typeImportData);
@@ -33,18 +35,17 @@ export const generateComponentTypes = (
   const jsxAttributes = attributesToMultiLineString([...propAttributes, ...eventAttributes], true, areTypesInternal);
 
   const element = [
-    `        interface ${htmlElementName} extends Components.${tagNameAsPascal}, HTMLStencilElement {`,
+    `        interface ${htmlElementName}${classTypeParams} extends Components.${tagNameAsPascal}${classTypeParams}, HTMLStencilElement {`,
+    `                prototype: ${htmlElementName}${classTypeParams};`,
+    `                new (): ${htmlElementName}${classTypeParams};`,
     `        }`,
-    `        var ${htmlElementName}: {`,
-    `                prototype: ${htmlElementName};`,
-    `                new (): ${htmlElementName};`,
-    `        };`,
+    `        var ${htmlElementName}: ${htmlElementName}${classTypeParamsAny};`,
   ];
   return {
     isDep,
     tagName,
-    tagNameAsPascal,
-    htmlElementName,
+    tagNameAsPascal: `${tagNameAsPascal}${classTypeParamsAny}`,
+    htmlElementName: `${htmlElementName}${classTypeParamsAny}`,
     component: `        interface ${tagNameAsPascal} {\n${componentAttributes}        }`,
     jsx: `    interface ${tagNameAsPascal} {\n${jsxAttributes}        }`,
     element: element.join(`\n`),

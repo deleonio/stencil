@@ -17,7 +17,7 @@ export const generateComponentTypes = (
   areTypesInternal: boolean
 ): d.TypesModule => {
   const tagName = cmp.tagName.toLowerCase();
-  const tagNameAsPascal = cmp.componentClassNameWithTypeParameters;
+  const tagNameAsPascal = dashToPascalCase(tagName);
   const classTypeParams =
     cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.join(',')}>` : '';
   const classTypeParamsAny =

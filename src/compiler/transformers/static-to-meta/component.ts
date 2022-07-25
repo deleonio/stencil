@@ -121,15 +121,17 @@ export const parseStaticComponentMeta = (
   };
 
   /**
-   * This code add a component class name with the
-   * type parameters. Later in the compiler execution
-   * there will this name used to named the interfaces
-   * in the component.d.ts.
+   * This code add a component class name with the type
+   * parameters. Later in the compiler execution there
+   * will this name used to named the interfaces in the
+   * component.d.ts.
    *
    * - https://github.com/ionic-team/stencil/issues/2895
    */
-  if (Array.isArray(symbol.declarations[0].typeParameters)) {
-    symbol.declarations[0].typeParameters.forEach((typeParameter) =>
+  const declarations = symbol.getDeclarations();
+  if (Array.isArray(declarations) && declarations.length > 0) {
+    const declaration = declarations[0] as ts.ClassDeclaration;
+    declaration.typeParameters.forEach((typeParameter) =>
       cmp.componentClassTypeParameters.push(typeParameter.name.text)
     );
   }

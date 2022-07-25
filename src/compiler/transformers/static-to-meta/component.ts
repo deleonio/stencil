@@ -125,11 +125,13 @@ export const parseStaticComponentMeta = (
    * type parameters. Later in the compiler execution
    * there will this name used to named the interfaces
    * in the component.d.ts.
-   * 
+   *
    * - https://github.com/ionic-team/stencil/issues/2895
    */
   if (Array.isArray(symbol.declarations[0].typeParameters)) {
-    symbol.declarations[0].typeParameters.forEach((typeParameter)=> cmp.componentClassTypeParameters.push(typeParameter.name.text));
+    symbol.declarations[0].typeParameters.forEach((typeParameter) =>
+      cmp.componentClassTypeParameters.push(typeParameter.name.text)
+    );
   }
 
   const visitComponentChildNode = (node: ts.Node) => {

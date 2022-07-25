@@ -18,8 +18,12 @@ export const generateComponentTypes = (
 ): d.TypesModule => {
   const tagName = cmp.tagName.toLowerCase();
   const tagNameAsPascal = cmp.componentClassNameWithTypeParameters;
-  const classTypeParams = cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.join(',')}>`: '';
-  const classTypeParamsAny = cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.map(()=> 'any').join(',')}>`: '';
+  const classTypeParams =
+    cmp.componentClassTypeParameters.length > 0 ? `<${cmp.componentClassTypeParameters.join(',')}>` : '';
+  const classTypeParamsAny =
+    cmp.componentClassTypeParameters.length > 0
+      ? `<${cmp.componentClassTypeParameters.map(() => 'any').join(',')}>`
+      : '';
   const htmlElementName = `HTML${tagNameAsPascal}Element`;
 
   const propAttributes = generatePropTypes(cmp, typeImportData);

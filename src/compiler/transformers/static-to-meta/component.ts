@@ -126,15 +126,26 @@ export const parseStaticComponentMeta = (
    * will this name used to named the interfaces in the
    * component.d.ts.
    *
+   * Addressed issue(s):
    * - https://github.com/ionic-team/stencil/issues/2895
+   *
+   * TypeScript implementation:
+   * - https://github.com/microsoft/TypeScript/blob/7584e6aad6b21f7334562bfd9d8c3c80aafed064/src/services/services.ts#L326
    */
-  const declarations = symbol.getDeclarations();
-  if (Array.isArray(declarations) && declarations.length > 0) {
-    const declaration = declarations[0] as ts.ClassDeclaration;
-    if (Array.isArray(declaration.typeParameters)) {
-      declaration.typeParameters.forEach((typeParameter) =>
-        cmp.componentClassTypeParameters.push(typeParameter.name.text)
-      );
+  if (
+    typeof symbol === 'object' &&
+    symbol !== null &&
+    Object.prototype.hasOwnProperty.call(symbol, 'getDeclarations') &&
+    typeof symbol.getDeclarations === 'function'
+  ) {
+    const declarations = symbol.getDeclarations();
+    if (Array.isArray(declarations) && declarations.length > 0) {
+      const declaration = declarations[0] as ts.ClassDeclaration;
+      if (Array.isArray(declaration.typeParameters)) {
+        declaration.typeParameters.forEach((typeParameter) =>
+          cmp.componentClassTypeParameters.push(typeParameter.name.text)
+        );
+      }
     }
   }
 

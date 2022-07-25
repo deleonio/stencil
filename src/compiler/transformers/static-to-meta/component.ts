@@ -131,9 +131,11 @@ export const parseStaticComponentMeta = (
   const declarations = symbol.getDeclarations();
   if (Array.isArray(declarations) && declarations.length > 0) {
     const declaration = declarations[0] as ts.ClassDeclaration;
-    declaration.typeParameters.forEach((typeParameter) =>
-      cmp.componentClassTypeParameters.push(typeParameter.name.text)
-    );
+    if (Array.isArray(declaration.typeParameters)) {
+      declaration.typeParameters.forEach((typeParameter) =>
+        cmp.componentClassTypeParameters.push(typeParameter.name.text)
+      );
+    }
   }
 
   const visitComponentChildNode = (node: ts.Node) => {

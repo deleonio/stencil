@@ -135,7 +135,6 @@ export const parseStaticComponentMeta = (
   if (
     typeof symbol === 'object' &&
     symbol !== null &&
-    Object.prototype.hasOwnProperty.call(symbol, 'getDeclarations') &&
     typeof symbol.getDeclarations === 'function'
   ) {
     const declarations = symbol.getDeclarations();

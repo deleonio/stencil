@@ -38,7 +38,7 @@
     "rollup.prod": "rollup --config --config-prod",
     "rollup.prod.ci": "rollup --config --config-prod --config-ci",
     "rollup.watch": "rollup --watch --config",
-      "start": "npm run watch",
+    "start": "npm run watch",
     "test": "jest --coverage",
     "test.analysis": "cd test && npm run analysis.build-and-analyze",
     "test.bundlers": "cd test && npm run bundlers",

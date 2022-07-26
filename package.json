@@ -38,7 +38,6 @@
     "rollup.prod": "rollup --config --config-prod",
     "rollup.prod.ci": "rollup --config --config-prod --config-ci",
     "rollup.watch": "rollup --watch --config",
-    "pr.check": "npm run build && npm test && npm run test:karma:prod && npm run prettier",
     "start": "npm run watch",
     "test": "jest --coverage",
     "test.analysis": "cd test && npm run analysis.build-and-analyze",

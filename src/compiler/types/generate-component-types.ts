@@ -50,8 +50,8 @@ export const generateComponentTypes = (
     tagName,
     tagNameAsPascal: `${tagNameAsPascal}${classTypeParamsAny}`,
     htmlElementName: `${htmlElementName}${classTypeParamsAny}`,
-    component: `        interface ${tagNameAsPascal} {\n${componentAttributes}        }`,
-    jsx: `    interface ${tagNameAsPascal} {\n${jsxAttributes}        }`,
+    component: `        interface ${tagNameAsPascal}${classTypeParams} {\n${componentAttributes}        }`,
+    jsx: `    interface ${tagNameAsPascal}${classTypeParams} {\n${jsxAttributes}        }`,
     element: element.join(`\n`),
   };
 };

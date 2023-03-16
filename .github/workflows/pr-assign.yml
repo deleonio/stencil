@@ -8,7 +8,7 @@ jobs:
   auto-request-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 # v2.4.0
+      - uses: actions/checkout@24cb9080177205b6e8c946b17badbe402adc938f # v2.4.0
       - uses: ./.github/workflows/actions/auto-request-reviews
         with:
           orgReadToken: ${{ secrets.READORG_GITHUB_TOKEN }}

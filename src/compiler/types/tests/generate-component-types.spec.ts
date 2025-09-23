@@ -1,61 +1,262 @@
-import type * as d from '../../../declarations';
+import { ComponentCompilerMeta } from '../../../declarations';
 import { generateComponentTypes } from '../generate-component-types';
 import { stubComponentCompilerMeta } from './ComponentCompilerMeta.stub';
-import { stubTypesImportData } from './TypesImportData.stub';
+import { stubComponentCompilerMethod } from './ComponentCompilerMethod.stub';
 
-describe('generate-component-types', () => {
-  describe('generateComponentTypes', () => {
-    it('default', () => {
-      // given
-      const componentCompilerMeta = stubComponentCompilerMeta();
-      const typeImportData = stubTypesImportData();
+describe('generateComponentTypes', () => {
+  describe('HTMLElement method conflicts', () => {
+    it('should generate standard interface when no method conflicts exist', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-button',
+        methods: [
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'customMethod',
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+        ],
+      };
 
-      // when
-      const typesModule: d.TypesModule = generateComponentTypes(componentCompilerMeta, typeImportData, false);
+      const result = generateComponentTypes(cmpMeta, {}, false);
 
-      // then
-      expect(typesModule).toEqual<d.TypesModule>({
-        component: `        interface StubCmp {
-        }`,
-        element: `        interface HTMLStubCmpElement extends Components.StubCmp, HTMLStencilElement {
-                prototype: HTMLStubCmpElement;
-                new (): HTMLStubCmpElement;
-        }
-        var HTMLStubCmpElement: HTMLStubCmpElement;`,
-        htmlElementName: `HTMLStubCmpElement`,
-        isDep: false,
-        jsx: `    interface StubCmp {
-        }`,
-        tagName: 'stub-cmp',
-        tagNameAsPascal: 'StubCmp',
-      });
+      expect(result.element).toContain('interface HTMLMyButtonElement extends Components.MyButton, HTMLStencilElement');
+      expect(result.element).not.toContain('Omit');
     });
 
-    it('with type parameters', () => {
-      // given
-      const componentCompilerMeta = stubComponentCompilerMeta();
-      const typeImportData = stubTypesImportData();
-      componentCompilerMeta.componentClassTypeParameters = ['a', 'b'];
+    it('should use Omit when focus method conflicts with HTMLElement', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-button',
+        docs: {
+          text: 'docs',
+          tags: [],
+        },
+        methods: [
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'focus',
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+        ],
+      };
 
-      // when
-      const typesModule: d.TypesModule = generateComponentTypes(componentCompilerMeta, typeImportData, false);
+      const result = generateComponentTypes(cmpMeta, {}, false);
 
-      // then
-      expect(typesModule).toEqual<d.TypesModule>({
-        component: `        interface StubCmp<a,b> {
-        }`,
-        element: `        interface HTMLStubCmpElement<a,b> extends Components.StubCmp<a,b>, HTMLStencilElement {
-                prototype: HTMLStubCmpElement<a,b>;
-                new (): HTMLStubCmpElement<a,b>;
-        }
-        var HTMLStubCmpElement: HTMLStubCmpElement<any,any>;`,
-        htmlElementName: `HTMLStubCmpElement<any,any>`,
-        isDep: false,
-        jsx: `    interface StubCmp<a,b> {
-        }`,
-        tagName: 'stub-cmp',
-        tagNameAsPascal: 'StubCmp<any,any>',
+      expect(result.element).toContain('Omit<Components.MyButton, "focus">');
+      expect(result.element).toContain('"focus": () => Promise<void>;');
+    });
+
+    it('should handle multiple method conflicts', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-button',
+        docs: {
+          text: 'docs',
+          tags: [],
+        },
+        methods: [
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'focus',
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'blur',
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'click',
+            complexType: {
+              signature: '(force?: boolean) => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+        ],
+      };
+
+      const result = generateComponentTypes(cmpMeta, {}, false);
+
+      console.log(result.element);
+      expect(result.element).toMatch(
+        /interface HTMLMyButtonElement extends Omit<Components\.MyButton, (?=.*"blur")(?=.*"click")(?=.*"focus").*>, HTMLStencilElement \{/,
+      );
+      expect(result.element).toContain('"focus": () => Promise<void>;');
+      expect(result.element).toContain('"blur": () => Promise<void>;');
+      expect(result.element).toContain('"click": (force?: boolean) => Promise<void>;');
+    });
+
+    it('should handle mixed conflicts and non-conflicts', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-button',
+        methods: [
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'focus',
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'customMethod',
+            complexType: {
+              signature: '() => Promise<string>',
+              parameters: [],
+              references: {},
+              return: 'Promise<string>',
+            },
+          },
+        ],
+      };
+
+      const result = generateComponentTypes(cmpMeta, {}, false);
+
+      expect(result.element).toContain('Omit<Components.MyButton, "focus">');
+      expect(result.element).toContain('"focus": () => Promise<void>;');
+    });
+
+    it('should preserve JSDoc for conflicting methods', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-button',
+        methods: [
+          {
+            ...stubComponentCompilerMethod(),
+            name: 'focus',
+            docs: {
+              text: 'Custom focus method that returns a promise',
+              tags: [],
+            },
+            complexType: {
+              signature: '() => Promise<void>',
+              parameters: [],
+              references: {},
+              return: 'Promise<void>',
+            },
+          },
+        ],
+      };
+
+      const result = generateComponentTypes(cmpMeta, {}, false);
+
+      expect(result.element).toContain('Custom focus method that returns a promise');
+    });
+
+    it('should handle comprehensive list of HTMLElement method conflicts', () => {
+      const htmlElementMethods = [
+        'animate',
+        'getAttribute',
+        'setAttribute',
+        'removeAttribute',
+        'hasAttribute',
+        'addEventListener',
+        'removeEventListener',
+        'appendChild',
+        'removeChild',
+        'insertBefore',
+        'querySelector',
+        'querySelectorAll',
+        'closest',
+        'matches',
+        'getBoundingClientRect',
+        'getClientRects',
+        'scrollIntoView',
+        'scroll',
+        'scrollBy',
+        'scrollTo',
+        'requestFullscreen',
+        'attachShadow',
+        'cloneNode',
+        'contains',
+        'normalize',
+        'replaceChild',
+        'append',
+        'prepend',
+        'before',
+        'after',
+        'remove',
+        'replaceWith',
+        'dispatchEvent',
+        'toggleAttribute',
+      ];
+
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'comprehensive-test',
+        methods: htmlElementMethods.slice(0, 5).map((methodName) => ({
+          ...stubComponentCompilerMethod(),
+          name: methodName,
+          complexType: {
+            signature: '() => Promise<void>',
+            parameters: [],
+            references: {},
+            return: 'Promise<void>',
+          },
+        })),
+      };
+
+      const result = generateComponentTypes(cmpMeta, {}, false);
+
+      // Should use Omit for conflicting methods
+      expect(result.element).toMatch(
+        /Omit<Components\.ComprehensiveTest, (?=.*"animate")(?=.*"getAttribute")(?=.*"setAttribute")(?=.*"removeAttribute")(?=.*"hasAttribute").*>/,
+      );
+
+      // Should re-declare the methods with component signatures
+      htmlElementMethods.slice(0, 5).forEach((methodName) => {
+        expect(result.element).toContain(`"${methodName}": () => Promise<void>;`);
       });
+    });
+  });
+
+  describe('component class type parameters', () => {
+    it('propagates type parameters through generated interfaces', () => {
+      const cmpMeta: ComponentCompilerMeta = {
+        ...stubComponentCompilerMeta(),
+        tagName: 'my-generic',
+        componentClassTypeParameters: ['T', 'U'],
+      };
+
+      const result = generateComponentTypes(cmpMeta, {}, false);
+
+      expect(result.component).toContain('interface MyGeneric<T,U>');
+      expect(result.jsx).toContain('interface MyGeneric<T,U>');
+      expect(result.element).toContain(
+        'interface HTMLMyGenericElement<T,U> extends Components.MyGeneric<T,U>, HTMLStencilElement',
+      );
+      expect(result.element).toContain('var HTMLMyGenericElement: HTMLMyGenericElement<any,any>;');
+      expect(result.element).toContain('this: HTMLMyGenericElement<any,any>');
+      expect(result.tagNameAsPascal).toBe('MyGeneric<any,any>');
+      expect(result.htmlElementName).toBe('HTMLMyGenericElement<any,any>');
     });
   });
 });

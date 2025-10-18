@@ -1,6 +1,6 @@
 import type { Circus } from '@jest/types';
 import type { E2EProcessEnv, JestEnvironmentGlobal } from '@stencil/core/internal';
-import { TestEnvironment as NodeEnvironment } from 'jest-environment-node';
+import NodeEnvironment from 'jest-environment-node';
 
 import { connectBrowser, disconnectBrowser, newBrowserPage } from '../../puppeteer/puppeteer-browser';
 import { JestPuppeteerEnvironmentConstructor } from '../jest-apis';
@@ -15,8 +15,8 @@ export function createJestPuppeteerEnvironment(): JestPuppeteerEnvironmentConstr
     testPath: string | null = null;
 
     constructor(config: any, context: any) {
-      super(config, context);
-      this.testPath = context.testPath;
+      super(config);
+      this.testPath = context?.testPath ?? null;
     }
 
     override async setup() {

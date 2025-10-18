@@ -1,6 +1,6 @@
 import { isString, normalizeFsPath, normalizePath } from '@utils';
 import { dirname } from 'path';
-import resolve, { AsyncOpts } from 'resolve';
+import resolve, { type AsyncOpts, type PackageJSON } from 'resolve';
 
 import type * as d from '../../../declarations';
 import { InMemoryFileSystem } from '../in-memory-fs';
@@ -17,7 +17,7 @@ export const resolveModuleIdAsync = (
   if (opts.packageFilter) {
     resolverOpts.packageFilter = opts.packageFilter;
   } else if (opts.packageFilter !== null) {
-    resolverOpts.packageFilter = (pkg) => {
+    resolverOpts.packageFilter = (pkg: PackageJSON) => {
       if (!isString(pkg.main) || pkg.main === '') {
         pkg.main = 'package.json';
       }
@@ -26,19 +26,26 @@ export const resolveModuleIdAsync = (
   }
 
   return new Promise<d.ResolveModuleIdResults>((resolvePromise, rejectPromise) => {
-    resolve(opts.moduleId, resolverOpts, (err, resolveId, pkgData: any) => {
+    resolve(opts.moduleId, resolverOpts, (err, resolveId, pkgData) => {
       if (err) {
         rejectPromise(err);
-      } else {
-        resolveId = normalizePath(resolveId);
-        const results: d.ResolveModuleIdResults = {
-          moduleId: opts.moduleId,
-          resolveId,
-          pkgData,
-          pkgDirPath: getPackageDirPath(resolveId, opts.moduleId),
-        };
-        resolvePromise(results);
+        return;
       }
+
+      if (!resolveId) {
+        rejectPromise(new Error(`Unable to resolve module: ${opts.moduleId}`));
+        return;
+      }
+
+      const normalizedResolveId = normalizePath(resolveId);
+      const normalizedPkgData = normalizePkgData(pkgData, opts.moduleId);
+      const results: d.ResolveModuleIdResults = {
+        moduleId: opts.moduleId,
+        resolveId: normalizedResolveId,
+        pkgData: normalizedPkgData,
+        pkgDirPath: getPackageDirPath(normalizedResolveId, opts.moduleId),
+      };
+      resolvePromise(results);
     });
   });
 };
@@ -97,4 +104,18 @@ export const createCustomResolverAsync = (
 
     extensions: exts,
   };
+};
+
+const normalizePkgData = (pkgData: PackageJSON | undefined, moduleId: string): d.ResolveModuleIdResults['pkgData'] => {
+  const normalized = { ...(pkgData ?? {}) } as d.ResolveModuleIdResults['pkgData'];
+
+  if (!isString(normalized.name) || normalized.name.length === 0) {
+    normalized.name = moduleId;
+  }
+
+  if (!isString(normalized.version) || normalized.version.length === 0) {
+    normalized.version = '0.0.0';
+  }
+
+  return normalized;
 };

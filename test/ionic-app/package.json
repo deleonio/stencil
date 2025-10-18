@@ -13,7 +13,8 @@
     "start": "node ../../bin/stencil build --dev --watch --serve",
     "test": "node ../../bin/stencil test --spec --e2e",
     "test.watch": "node ../../bin/stencil test --spec --e2e --watch",
-    "generate": "node ../../bin/stencil generate"
+    "generate": "node ../../bin/stencil generate",
+    "postinstall": "node ./scripts/patch-autocorrect-types.cjs"
   },
   "dependencies": {
     "@ionic/core": "^6.0.10"

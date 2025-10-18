@@ -397,6 +397,7 @@ export declare function getRenderingRef(): any;
 
 export interface HTMLStencilElement extends HTMLElement {
   componentOnReady(): Promise<this>;
+  autocorrect: HTMLElement['autocorrect'];
 }
 
 /**

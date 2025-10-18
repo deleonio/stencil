@@ -395,10 +395,9 @@ export declare function forceUpdate(ref: any): void;
  */
 export declare function getRenderingRef(): any;
 
-export interface HTMLStencilElement extends Omit<HTMLElement, 'autocorrect'> {
+export interface HTMLStencilElement extends HTMLElement {
   componentOnReady(): Promise<this>;
-  // TODO: remove this when [added to typescript](https://github.com/microsoft/typescript/issues/62083)
-  autocorrect: 'on' | 'off';
+  autocorrect: HTMLElement['autocorrect'];
 }
 
 /**
